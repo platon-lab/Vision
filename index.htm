@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гра "Вгадай Прозору Картинку"</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button {
+            padding: 12px 28px;
+            margin: 15px 5px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4);
+            transition: all 0.3s ease-in-out;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.6);
+        }
+        .section {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+        #gameArea {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 10px;
+        }
+        #difficultyLevelDisplay {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: #e74c3c;
+            background: #ffeaa7;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        #topImageContainer {
+            width: 220px;
+            height: 220px;
+            border: 4px solid #3498db;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Шаховий фон для кращої видимості прозорості */
+            background: repeating-conic-gradient(#ecf0f1 0% 25%, #bdc3c7 0% 50%) 50% / 20px 20px;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+        }
+        #topImage {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: opacity 0.5s ease-in-out; 
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.3));
+        }
+        #choicesContainer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .choice-image {
+            width: 130px;
+            height: 130px;
+            object-fit: cover;
+            border: 4px solid #ecf0f1;
+            border-radius: 12px;
+            cursor: pointer;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s ease-in-out;
+        }
+        .choice-image:hover {
+            border-color: #3498db;
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 8px 15px rgba(52, 152, 219, 0.4);
+        }
+        .choice-image.correct {
+            border-color: #2ecc71;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.7);
+            transform: scale(1.05);
+        }
+        .choice-image.wrong {
+            border-color: #e74c3c;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.7);
+        }
+        #resultMessage {
+            font-size: 1.4em;
+            font-weight: 800;
+            margin-top: 10px;
+            min-height: 35px;
+        }
+        .end-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            font-size: 1.5em;
+            text-align: center;
+            color: white;
+            backdrop-filter: blur(15px);
+        }
+        #gameOverScreen {
+            background-color: rgba(231, 76, 60, 0.95);
+        }
+        #gameOverScreen h1 {
+            color: white;
+            font-size: 3em;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+        #gameOverDifficultyAchieved {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px;
+        }
+        #visionEvaluation {
+            font-size: 1.4em;
+            font-weight: 900;
+            margin: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+        }
+        .end-screen button {
+            background: white;
+            color: #e74c3c;
+            font-size: 1.2em;
+        }
+        .end-screen button:hover {
+            background: #f1f2f6;
+            color: #c0392b;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Гра "Вгадай Прозору Картинку"</h1>
+
+        <div id="startScreen" class="section">
+            <h2>Перевір, наскільки у тебе гострий зір!</h2>
+            <p>Картинки ставатимуть все прозорішими з кожним рівнем. Гра триває до першої помилки.</p>
+            <button id="startGameButton">Почати гру</button>
+        </div>
+
+        <div id="gameArea">
+            <div id="difficultyLevelDisplay"></div> 
+            <div id="topImageContainer">
+                <img id="topImage" src="" alt="Верхня картинка">
+            </div>
+
+            <div id="choicesContainer"></div>
+            <p id="resultMessage"></p>
+        </div>
+    </div>
+
+    <div id="gameOverScreen" class="end-screen">
+        <h1>ГРА ЗАКІНЧЕНА</h1>
+        <p id="gameOverDifficultyAchieved"></p>
+        <p id="visionEvaluation"></p>
+        <button id="gameOverRestartButton">Спробувати знову</button>
+    </div>
+
+    <script>
+        const startGameButton = document.getElementById('startGameButton');
+        const startScreen = document.getElementById('startScreen');
+        const gameArea = document.getElementById('gameArea');
+        const difficultyLevelDisplay = document.getElementById('difficultyLevelDisplay');
+        const topImage = document.getElementById('topImage');
+        const choicesContainer = document.getElementById('choicesContainer');
+        const resultMessage = document.getElementById('resultMessage');
+
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const gameOverDifficultyAchieved = document.getElementById('gameOverDifficultyAchieved');
+        const visionEvaluation = document.getElementById('visionEvaluation');
+        const gameOverRestartButton = document.getElementById('gameOverRestartButton');
+
+        // Жорстко задані зображення з папки
+        const uploadedImages = [
+            'Tito.png', 'Smartik.png', 'Junior.png', 'Fil.png', 'Milka.png', 'Bark.png'
+        ];
+        
+        let currentLevel = 0; 
+        let correctImageURL = '';
+        let lastReachedDifficultyName = "НЕМАЄ";
+
+        const BASE_LEVELS_PER_IMAGE = 3; 
+        const NUM_CHOICES = 4;
+        const AUTO_ADVANCE_DELAY = 1000;
+
+        const difficultyLevelsConfig = [
+            { name: "Супер Легкий", opacity: 1.0 },
+            { name: "Дуже Легкий", opacity: 0.85 },      
+            { name: "Легкий", opacity: 0.75 },             
+            { name: "Легкий+", opacity: 0.65 },           
+            { name: "Майже Середній", opacity: 0.55 },      
+            { name: "Середній", opacity: 0.45 },           
+            { name: "Середній+", opacity: 0.4 },           
+            { name: "Нормальний", opacity: 0.35 },        
+            { name: "Трохи Складний", opacity: 0.3 },    
+            { name: "Складний", opacity: 0.25 },           
+            { name: "Складний+", opacity: 0.22 },           
+            { name: "Дуже Складний", opacity: 0.19 },     
+            { name: "Дуже Складний+", opacity: 0.16 },     
+            { name: "Досить Складний", opacity: 0.13 },    
+            { name: "Серйозно Складний", opacity: 0.1 },   
+            { name: "Важкий", opacity: 0.09 },           
+            { name: "Важкий+", opacity: 0.08 },           
+            { name: "Дуже Важкий", opacity: 0.07 },     
+            { name: "Дуже Важкий+", opacity: 0.06 },    
+            { name: "Вкрай Важкий", opacity: 0.05 },    
+            { name: "Жорсткий", opacity: 0.045 },          
+            { name: "Жорсткий+", opacity: 0.04 },          
+            { name: "Екстремальний", opacity: 0.035 },     
+            { name: "Екстремальний+", opacity: 0.03 },    
+            { name: "Божевільний", opacity: 0.025 },          
+            { name: "Божевільний+", opacity: 0.02 },         
+            { name: "Неможливий", opacity: 0.018 },       
+            { name: "Неможливий+", opacity: 0.015 },     
+            { name: "Вища Ліга", opacity: 0.012 },        
+            { name: "НЕРЕАЛЬНО!!!", opacity: 0.01 }       
+        ];
+
+        startGameButton.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            gameArea.style.display = 'flex';
+            initializeGame();
+        });
+
+        function initializeGame() {
+            currentLevel = 0;
+            lastReachedDifficultyName = "НЕМАЄ"; 
+            startLevel();
+        }
+
+        function getDifficultyForLevel(level) {
+            // Визначаємо індекс складності. Кожні BASE_LEVELS_PER_IMAGE (3) рівня складність зростає.
+            const diffIndex = Math.floor((level - 1) / BASE_LEVELS_PER_IMAGE);
+            
+            if (diffIndex < difficultyLevelsConfig.length) {
+                return difficultyLevelsConfig[diffIndex];
+            } else {
+                // Якщо рівні вийшли за межі конфігурації (нескінченний режим)
+                const extraLevels = diffIndex - difficultyLevelsConfig.length + 1;
+                const baseHardcoreOpacity = difficultyLevelsConfig[difficultyLevelsConfig.length - 1].opacity;
+                // Прозорість продовжує зменшуватися на 5% кожного нового етапу
+                const newOpacity = baseHardcoreOpacity * Math.pow(0.95, extraLevels);
+                
+                return {
+                    name: `ЗА МЕЖЕЮ (${extraLevels}) 💀`,
+                    opacity: Math.max(0.001, newOpacity) // Обмежуємо мінімальну прозорість
+                };
+            }
+        }
+
+        function startLevel() {
+            currentLevel++;
+            
+            const currentDiff = getDifficultyForLevel(currentLevel);
+            lastReachedDifficultyName = currentDiff.name;
+            difficultyLevelDisplay.textContent = `Рівень ${currentLevel} | Складність: ${lastReachedDifficultyName}`;
+            
+            resultMessage.textContent = '';
+            choicesContainer.innerHTML = '';
+
+            const randomIndexTop = Math.floor(Math.random() * uploadedImages.length);
+            correctImageURL = uploadedImages[randomIndexTop];
+            
+            topImage.src = correctImageURL;
+            topImage.style.opacity = currentDiff.opacity; 
+            
+            let finalChoices = [];
+            let availableImages = [...uploadedImages]; 
+
+            finalChoices.push(correctImageURL);
+            availableImages = availableImages.filter(url => url !== correctImageURL);
+
+            shuffleArray(availableImages); 
+
+            for (let i = 0; i < NUM_CHOICES - 1; i++) {
+                finalChoices.push(availableImages.pop()); 
+            }
+
+            shuffleArray(finalChoices); 
+
+            finalChoices.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'choice-image';
+                img.dataset.url = url;
+                img.addEventListener('click', checkAnswer);
+                choicesContainer.appendChild(img);
+            });
+        }
+
+        function checkAnswer(event) {
+            const selectedImageURL = event.target.dataset.url;
+            const choiceImagesElements = choicesContainer.querySelectorAll('.choice-image');
+
+            choiceImagesElements.forEach(img => {
+                img.removeEventListener('click', checkAnswer);
+                img.style.cursor = 'default';
+            });
+
+            if (selectedImageURL === correctImageURL) {
+                resultMessage.textContent = 'Правильно! 🎉';
+                resultMessage.style.color = '#2ecc71';
+                event.target.classList.add('correct');
+
+                setTimeout(() => {
+                    startLevel(); 
+                }, AUTO_ADVANCE_DELAY); 
+            } else {
+                resultMessage.textContent = 'Неправильно. 🙁';
+                resultMessage.style.color = '#e74c3c';
+                event.target.classList.add('wrong');
+                choicesContainer.querySelector(`.choice-image[data-url="${correctImageURL}"]`).classList.add('correct');
+                
+                setTimeout(showGameOverScreen, 800);
+            }
+        }
+
+        function showGameOverScreen() {
+            gameArea.style.display = 'none';
+            gameOverDifficultyAchieved.textContent = `Ви дійшли до рівня: ${currentLevel} (${lastReachedDifficultyName})`;
+            
+            // Оцінка зору
+            let visionText = "";
+            if (currentLevel <= 5) visionText = "Сліпий кріт 🦇 (Час перевірити зір!)";
+            else if (currentLevel <= 15) visionText = "Звичайний зір 👓 (Непогано, але буває й краще)";
+            else if (currentLevel <= 30) visionText = "Хороший зір 👁️ (Ви бачите краще за багатьох!)";
+            else if (currentLevel <= 50) visionText = "Соколине око 🦅 (Просто чудовий результат!)";
+            else if (currentLevel <= 70) visionText = "Око-алмаз 💎 (Неймовірний зір, ви бачите крізь стіни?!)";
+            else visionText = "Кіборг-термінатор 🤖 (Ваш зір за межею людських можливостей!)";
+
+            visionEvaluation.textContent = `Ваш діагноз: ${visionText}`;
+            gameOverScreen.style.display = 'flex';
+        }
+
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            startScreen.style.display = 'block';
+        }
+
+        gameOverRestartButton.addEventListener('click', restartGame);
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+    </script>
+
+</body>
+</html>
