@@ -103,6 +103,23 @@
             gap: 20px;
             flex-wrap: wrap;
             margin-top: 10px;
+            max-height: 320px; /* Обмеження висоти блоку вибору */
+            overflow-y: auto;  /* Дозволяє гортати вниз і вгору */
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.02);
+        }
+        /* Стилізація повзунка прокрутки для красивого вигляду */
+        #choicesContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+        #choicesContainer::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+        #choicesContainer::-webkit-scrollbar-thumb {
+            background: #4facfe;
+            border-radius: 10px;
         }
         .choice-image {
             width: 130px;
@@ -229,9 +246,12 @@
         const visionEvaluation = document.getElementById('visionEvaluation');
         const gameOverRestartButton = document.getElementById('gameOverRestartButton');
 
-        // Жорстко задані зображення з папки
+        // Жорстко задані зображення з папки (додано 14 нових героїв)
         const uploadedImages = [
-            'Tito.png', 'Smartik.png', 'Junior.png', 'Fil.png', 'Milka.png', 'Bark.png'
+            'Tito.png', 'Smartik.png', 'Junior.png', 'Fil.png', 'Milka.png', 'Bark.png',
+            'Persik.png', 'Spike.png', 'Alyonka.png', 'Lilu.png', 'Manya.png', 'Liza.png', 
+            'Grivna.png', 'Ben.png', 'Goldi.png', 'Raf.png', 'Veles.png', 'Masha.png', 
+            'Brilliantik.png', 'Richik.png'
         ];
         
         let currentLevel = 0; 
@@ -288,21 +308,18 @@
         }
 
         function getDifficultyForLevel(level) {
-            // Визначаємо індекс складності. Кожні BASE_LEVELS_PER_IMAGE (3) рівня складність зростає.
             const diffIndex = Math.floor((level - 1) / BASE_LEVELS_PER_IMAGE);
             
             if (diffIndex < difficultyLevelsConfig.length) {
                 return difficultyLevelsConfig[diffIndex];
             } else {
-                // Якщо рівні вийшли за межі конфігурації (нескінченний режим)
                 const extraLevels = diffIndex - difficultyLevelsConfig.length + 1;
                 const baseHardcoreOpacity = difficultyLevelsConfig[difficultyLevelsConfig.length - 1].opacity;
-                // Прозорість продовжує зменшуватися на 5% кожного нового етапу
                 const newOpacity = baseHardcoreOpacity * Math.pow(0.95, extraLevels);
                 
                 return {
                     name: `ЗА МЕЖЕЮ (${extraLevels}) 💀`,
-                    opacity: Math.max(0.001, newOpacity) // Обмежуємо мінімальну прозорість
+                    opacity: Math.max(0.001, newOpacity)
                 };
             }
         }
@@ -345,6 +362,9 @@
                 img.addEventListener('click', checkAnswer);
                 choicesContainer.appendChild(img);
             });
+            
+            // Скидаємо скрол до самого верху на кожному новому рівні
+            choicesContainer.scrollTop = 0;
         }
 
         function checkAnswer(event) {
@@ -378,7 +398,6 @@
             gameArea.style.display = 'none';
             gameOverDifficultyAchieved.textContent = `Ви дійшли до рівня: ${currentLevel} (${lastReachedDifficultyName})`;
             
-            // Оцінка зору
             let visionText = "";
             if (currentLevel <= 5) visionText = "Сліпий кріт 🦇 (Час перевірити зір!)";
             else if (currentLevel <= 15) visionText = "Звичайний зір 👓 (Непогано, але буває й краще)";
